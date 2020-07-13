@@ -18,5 +18,14 @@ module.exports = {
         },
         // 启用CSS modules for all cs / pre-processor files
         requireModuleExtension: false
-    }
+    },
+    devServer: {
+        overlay: {
+            warnings: false,
+            errors: false
+        },
+
+    },
+    // eslint-loader 是否在保存的时候检查
+    lintOnSave: false
 }
