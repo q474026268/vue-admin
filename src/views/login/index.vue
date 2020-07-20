@@ -34,7 +34,7 @@
           ></el-input>
         </el-form-item>
 
-         <el-form-item prop="passwords" class="form-item" v-show="model === 'register'">
+        <el-form-item prop="passwords" class="form-item" v-show="model === 'register'">
           <label>确认密码</label>
           <el-input
             type="password"
@@ -52,13 +52,12 @@
               <el-input v-model.number="ruleForm.code" minlength="6" maxlength="6"></el-input>
             </el-col>
             <el-col :span="9">
-              <el-button type="success" class="blcok">获取验证码</el-button>
+              <el-button type="success" class="blcok" @click="getSms()">获取验证码</el-button>
             </el-col>
           </el-row>
         </el-form-item>
-
         <el-form-item>
-          <el-button type="danger" @click="submitForm('ruleForm')" class="blcok login-btn">登录</el-button>
+          <el-button type="danger" @click="submitForm('ruleForm')" class="blcok login-btn" :disabled="loginButtonStatus">{{ model == 'login'? '登录': '注册'}}</el-button>
         </el-form-item>
       </el-form>
       <!-- 表单 end -->
@@ -67,10 +66,11 @@
 </template>
 
 <script>
+import { GetSms } from "@/api/login";
 import {
   stripscript,
   validateEmail,
-  validateCode,
+  validateCodes,
   validatePass
 } from "@/utils/validate";
 export default {
@@ -99,7 +99,7 @@ export default {
         callback();
       }
     };
-     // 确认密码校验
+    // 确认密码校验
     var validatePasswords = (rule, value, callback) => {
       // 过滤特殊字符
       this.ruleForm.passwords = stripscript(value);
@@ -116,7 +116,7 @@ export default {
     var validateCode = (rule, value, callback) => {
       if (value === "") {
         callback(new Error("请输入验证码"));
-      } else if (!validateCode(value)) {
+      } else if (!validateCodes(value)) {
         callback(new Error("验证码格式有误"));
       } else {
         callback(); // true
@@ -124,11 +124,13 @@ export default {
     };
     return {
       menuTab: [
-        { txt: "登录", current: true , type: 'login'},
-        { txt: "注册", current: false, type: 'register'}
+        { txt: "登录", current: true, type: "login" },
+        { txt: "注册", current: false, type: "register" }
       ],
       // 模块值
-      model: 'register',
+      model: "login",
+      // 登陆按钮禁用状态
+      loginButtonStatus: true,
       // 表单数据
       ruleForm: {
         username: "",
@@ -149,6 +151,14 @@ export default {
   // 挂载完成后自动执行
   mounted() {},
   methods: {
+    // 获取验证码
+    getSms() {
+      // if(this.ruleForm.username == '' ){
+      //   this.$message('邮箱不能为空!');
+      //   return;
+      // }
+      GetSms({username: this.ruleForm.username})
+    },
     toggleMneu(data) {
       // 点击初始化状态
       this.menuTab.forEach(item => (item.current = false));
@@ -157,12 +167,13 @@ export default {
       // 模块改变
       this.model = data.type;
     },
+    // 提交表单
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          alert("submit!");
+          
         } else {
-          console.log("error submit!!");
+          
           return false;
         }
       });
