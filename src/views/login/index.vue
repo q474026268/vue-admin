@@ -51,7 +51,7 @@
           <label for="code">验证码</label>
           <el-row :gutter="11">
             <el-col :span="15">
-              <el-input v-model.number="ruleForm.code" minlength="6" maxlength="6" id="code"></el-input>
+               <el-input type="text" v-model="ruleForm.code" autocomplete="off" id="code" maxlength="6"></el-input>
             </el-col>
             <el-col :span="9">
               <el-button type="success" class="blcok" @click="getSms()">获取验证码</el-button>
@@ -168,11 +168,13 @@ export default {
         this.$message.error("邮箱格式有误请重新输入!");
         return;
       }
-      GetSms({ username: this.ruleForm.username })
+      GetSms({ username: this.ruleForm.username, model: this.model })
         .then(res => {
-          let code = res.data.message.substring(res.data.message.length - 6);
+          let data =res. data;
+          let code = data.message.substring(res.data.message.length - 6);
           localStorage.setItem("code", code);
-          console.log(code);
+          console.log("验证码:" + code); 
+          this.$message.success(data.message.substring(0,6));
         })
         .catch(err => {
           console.log(err);
@@ -185,6 +187,8 @@ export default {
       data.current = true;
       // 模块改变
       this.model = data.type;
+      // 重置表单
+      this.$refs["ruleForm"].resetFields();
     },
     // 提交表单
     submitForm(formName) {
@@ -192,7 +196,7 @@ export default {
         if (valid) {
           if (this.ruleForm.code == localStorage.getItem("code")) {
             this.$message.success("提交成功");
-          }else{
+          } else {
             this.$message.success("验证码错误!");
           }
         } else {
@@ -207,8 +211,6 @@ export default {
 <style lang="scss" scoped>
 #login {
   background-color: #344a5f;
-  // background-image: url("http://g-shot.oss-cn-hangzhou.aliyuncs.com/h5/Vue/static/images/loginBackGround.jpg");
-  // background-size: 100% 100%;
   height: 100vh;
 }
 .login-wrap {
