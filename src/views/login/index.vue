@@ -19,37 +19,39 @@
         size="medium"
       >
         <el-form-item prop="username" class="form-item">
-          <label>邮箱</label>
-          <el-input type="text" v-model="ruleForm.username" autocomplete="off"></el-input>
+          <label for="username">邮箱</label>
+          <el-input type="text" v-model="ruleForm.username" autocomplete="off" id="username"></el-input>
         </el-form-item>
 
         <el-form-item prop="password" class="form-item">
-          <label>密码</label>
+          <label for="password">密码</label>
           <el-input
             type="password"
             v-model="ruleForm.password"
             autocomplete="off"
             minlength="6"
             maxlength="20"
+            id="password"
           ></el-input>
         </el-form-item>
 
         <el-form-item prop="passwords" class="form-item" v-show="model === 'register'">
-          <label>确认密码</label>
+          <label for="passwords">确认密码</label>
           <el-input
             type="password"
             v-model="ruleForm.passwords"
             autocomplete="off"
             minlength="6"
             maxlength="20"
+            id="passwords"
           ></el-input>
         </el-form-item>
 
         <el-form-item prop="code" class="form-item">
-          <label>验证码</label>
+          <label for="code">验证码</label>
           <el-row :gutter="11">
             <el-col :span="15">
-              <el-input v-model.number="ruleForm.code" minlength="6" maxlength="6"></el-input>
+              <el-input v-model.number="ruleForm.code" minlength="6" maxlength="6" id="code"></el-input>
             </el-col>
             <el-col :span="9">
               <el-button type="success" class="blcok" @click="getSms()">获取验证码</el-button>
@@ -57,7 +59,12 @@
           </el-row>
         </el-form-item>
         <el-form-item>
-          <el-button type="danger" @click="submitForm('ruleForm')" class="blcok login-btn" :disabled="loginButtonStatus">{{ model == 'login'? '登录': '注册'}}</el-button>
+          <el-button
+            type="danger"
+            @click="submitForm('ruleForm')"
+            class="blcok login-btn"
+            :disabled="loginButtonStatus"
+          >{{ model == 'login'? '登录': '注册'}}</el-button>
         </el-form-item>
       </el-form>
       <!-- 表单 end -->
@@ -153,11 +160,23 @@ export default {
   methods: {
     // 获取验证码
     getSms() {
-      // if(this.ruleForm.username == '' ){
-      //   this.$message('邮箱不能为空!');
-      //   return;
-      // }
-      GetSms({username: this.ruleForm.username})
+      if (this.ruleForm.username == "") {
+        this.$message.error("邮箱不能为空!");
+        return;
+      }
+      if (!validateEmail(this.ruleForm.username)) {
+        this.$message.error("邮箱格式有误请重新输入!");
+        return;
+      }
+      GetSms({ username: this.ruleForm.username })
+        .then(res => {
+          let code = res.data.message.substring(res.data.message.length - 6);
+          localStorage.setItem("code", code);
+          console.log(code);
+        })
+        .catch(err => {
+          console.log(err);
+        });
     },
     toggleMneu(data) {
       // 点击初始化状态
@@ -171,9 +190,12 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          
+          if (this.ruleForm.code == localStorage.getItem("code")) {
+            this.$message.success("提交成功");
+          }else{
+            this.$message.success("验证码错误!");
+          }
         } else {
-          
           return false;
         }
       });
