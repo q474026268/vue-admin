@@ -5,7 +5,7 @@ const BASEURL = process.env.NODE_ENV === 'production' ? '' : '/devapi'
 // 创建axios,赋给变量service
 const service = axios.create({
     baseURL: BASEURL,
-    timeout: 1000,
+    timeout: 15000,
 });
 // 添加请求拦截器
 service.interceptors.request.use(function (config) {

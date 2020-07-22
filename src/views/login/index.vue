@@ -51,10 +51,21 @@
           <label for="code">验证码</label>
           <el-row :gutter="11">
             <el-col :span="15">
-               <el-input type="text" v-model="ruleForm.code" autocomplete="off" id="code" maxlength="6"></el-input>
+              <el-input
+                type="text"
+                v-model="ruleForm.code"
+                autocomplete="off"
+                id="code"
+                maxlength="6"
+              ></el-input>
             </el-col>
             <el-col :span="9">
-              <el-button type="success" class="blcok" @click="getSms()">获取验证码</el-button>
+              <el-button
+                type="success"
+                class="blcok"
+                @click="getSms()"
+                :disabled="codeButton.status"
+              >{{codeButton.text}}</el-button>
             </el-col>
           </el-row>
         </el-form-item>
@@ -138,6 +149,16 @@ export default {
       model: "login",
       // 登陆按钮禁用状态
       loginButtonStatus: true,
+      // 倒计时
+      timer: null,
+
+      // 验证码按钮
+      codeButton: {
+        // 获取验证码按钮状态
+        status: false,
+        // 验证码按钮文字
+        text: "获取验证码"
+      },
       // 表单数据
       ruleForm: {
         username: "",
@@ -160,6 +181,7 @@ export default {
   methods: {
     // 获取验证码
     getSms() {
+      let that = this;
       if (this.ruleForm.username == "") {
         this.$message.error("邮箱不能为空!");
         return;
@@ -168,17 +190,25 @@ export default {
         this.$message.error("邮箱格式有误请重新输入!");
         return;
       }
-      GetSms({ username: this.ruleForm.username, model: this.model })
-        .then(res => {
-          let data =res. data;
-          let code = data.message.substring(res.data.message.length - 6);
-          localStorage.setItem("code", code);
-          console.log("验证码:" + code); 
-          this.$message.success(data.message.substring(0,6));
-        })
-        .catch(err => {
-          console.log(err);
-        });
+      this.codeButton.status = true;
+      this.codeButton.text = "发送中";
+
+      setTimeout(() => {
+        GetSms({ username: this.ruleForm.username, model: this.model })
+          .then(res => {
+            let data = res.data;
+            let code = data.message.substring(res.data.message.length - 6);
+            localStorage.setItem("code", code);
+            console.log("验证码:" + code);
+            this.$message.success(data.message.substring(0, 6));
+            this.loginButtonStatus = true;
+            // 调用定时器,倒计时
+            that.countDown(60);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }, 3000);
     },
     toggleMneu(data) {
       // 点击初始化状态
@@ -203,6 +233,19 @@ export default {
           return false;
         }
       });
+    },
+    // 倒计时
+    countDown(number){
+      let that = this;
+      var timer = setInterval(()=>{
+        number--;
+        that.codeButton.text = number + '秒';
+        if(number == 0){
+          clearInterval(timer);
+          that.codeButton.text = '获取验证码';
+          that.codeButton.status = false;
+        }
+      },1000);
     }
   }
 };
